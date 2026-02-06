@@ -3,7 +3,7 @@ import time
 import os
 
 BASE_URL = "http://127.0.0.1:8000"
-INTERVAL = 1.0  # seconds between polls
+INTERVAL = 0.1  # seconds between polls
 
 endpoints = {
     "lap_count": "/lap_count",

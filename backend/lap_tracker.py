@@ -84,10 +84,6 @@ class LapTracker:
                         self.lap_state = LapState.STARTED
                         self.laps += 1
 
-                # print without holding lock (optional)
-                laps, hp, clp, st = self.get_snapshot()
-                print(f"Hallway Progress: {hp:.2f}, Current Lap Progress: {clp:.2f}, Laps: {laps}, State: {st}")
-
         self.cleanup()
 
     def get_snapshot(self):

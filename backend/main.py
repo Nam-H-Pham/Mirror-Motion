@@ -1,51 +1,64 @@
-from fastapi import FastAPI
-from contextlib import asynccontextmanager
-from lap_tracker import LapTracker
 import threading
+import time
 
+import uvicorn
+from fastapi import FastAPI
 
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    tracker = LapTracker(rotate_frames=True, threshold=0.14)
+from lap_tracker import LapTracker
 
-    # If run() blocks, start it in a thread
-    thread = threading.Thread(target=tracker.run, daemon=True)
-    thread.start()
+app = FastAPI()
 
-    app.state.tracker = tracker
-
-    yield  # --- app runs here --- 
-
-    tracker.cleanup()
-
-
-app = FastAPI(lifespan=lifespan)
-
-
-def get_tracker() -> LapTracker:
-    return app.state.tracker
+# Single shared tracker instance (lives for the whole process)
+tracker = LapTracker(rotate_frames=True, threshold=0.14)
 
 
 @app.get("/lap_count")
 def get_lap_count() -> dict:
-    tracker = get_tracker()
     return {"lap_count": tracker.get_lap_count()}
 
 
 @app.get("/current_lap_progress")
 def get_current_lap_progress() -> dict:
-    tracker = get_tracker()
     return {"current_lap_progress": tracker.get_current_lap_progress()}
 
 
 @app.get("/hallway_progress")
 def get_hallway_progress() -> dict:
-    tracker = get_tracker()
     return {"hallway_progress": tracker.get_hallway_progress()}
 
 
 @app.get("/lap_state")
 def get_lap_state() -> dict:
-    tracker = get_tracker()
-    # enum values: NOT_STARTED, STARTED, RETURNING
+    # from LapState enum values: NOT_STARTED, STARTED, RETURNING
     return {"lap_state": tracker.get_lap_state().name}
+
+
+def run_api() -> None:
+    # Important: run Uvicorn in a background thread
+    config = uvicorn.Config(
+        app,
+        host="0.0.0.0",
+        port=8000,
+        log_level="info",
+        # If you hot-reload, do it externally (reload=True uses subprocesses and won't work nicely here)
+        reload=False,
+        # One worker only; multiple workers = multiple processes = tracker wont be shared
+        workers=1,
+    )
+    server = uvicorn.Server(config)
+    server.run()
+
+
+if __name__ == "__main__":
+    # Start the API server in the background
+    api_thread = threading.Thread(target=run_api, name="Uvicorn", daemon=True)
+    api_thread.start()
+
+    # Give the server a moment to start (optional but avoids race during startup logs)
+    time.sleep(0.2)
+
+    # Run tracker (with imshow/waitKey) on the MAIN thread (macOS requirement)
+    try:
+        tracker.run()
+    finally:
+        tracker.cleanup()
