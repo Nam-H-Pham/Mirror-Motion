@@ -3,6 +3,7 @@ from dotenv import load_dotenv, dotenv_values
 from posedetector import PoseDetector
 from distancetracker import DistanceTracker
 from enum import Enum
+import numpy as np
 
 load_dotenv()
 
@@ -30,6 +31,8 @@ class LapState(Enum):
 laps = 0
 lap_state = LapState.NOT_STARTED
 
+rotate_frames = True  # Set to True if the camera feed is rotated and needs correction
+
 # Main loop to read frames from both cameras, process them, and display the results
 while True:
 
@@ -37,21 +40,19 @@ while True:
     ret_start, frame_start = cap_start.read() 
     ret_end, frame_end = cap_end.read()
 
-    # Rotate frames
-    if ret_start:
-        frame_start = cv2.rotate(frame_start, cv2.ROTATE_90_CLOCKWISE)
-    if ret_end:
-        frame_end = cv2.rotate(frame_end, cv2.ROTATE_90_CLOCKWISE)
-
     # Process frames with PoseDetector and display them
     if ret_start:
+        frame_start = frame_start if not rotate_frames else cv2.rotate(frame_start, cv2.ROTATE_90_CLOCKWISE)
         pd_start.process(frame_start) # Pose estimation results for the start camera
-        frame_start = pd_start.overlay_pose(frame_start) # Overlay pose landmarks on the frame
+
+        #overlay on black image
+        frame_start = pd_start.overlay_pose(np.zeros_like(frame_start)) 
         cv2.imshow("Camera Start", frame_start)
         
     if ret_end:
+        frame_end = frame_end if not rotate_frames else cv2.rotate(frame_end, cv2.ROTATE_90_CLOCKWISE)
         pd_end.process(frame_end)
-        frame_end = pd_end.overlay_pose(frame_end)
+        frame_end = pd_end.overlay_pose(np.zeros_like(frame_end))
         cv2.imshow("Camera End", frame_end)
 
     # Get keyboard input once per iteration
