@@ -23,3 +23,19 @@ class PoseDetector:
     def overlay_pose(self, frame: cv2.Mat) -> cv2.Mat:
         mp.solutions.drawing_utils.draw_landmarks(frame, self.last_results.pose_landmarks, mp.solutions.pose.POSE_CONNECTIONS)
         return frame
+    
+    def right_hand_raised(self) -> bool:
+        if not self.last_results or not self.last_results.pose_landmarks:
+            return False
+        
+        landmarks = self.last_results.pose_landmarks.landmark
+        # Check if right wrist is above right shoulder
+        return landmarks[16].y < landmarks[12].y
+    
+    def left_hand_raised(self) -> bool:
+        if not self.last_results or not self.last_results.pose_landmarks:
+            return False
+        
+        landmarks = self.last_results.pose_landmarks.landmark
+        # Check if left wrist is above left shoulder
+        return landmarks[15].y < landmarks[11].y

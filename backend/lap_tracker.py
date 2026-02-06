@@ -8,7 +8,7 @@ import threading
 from frame_grabber import FrameGrabber
 
 class LapTracker:
-    def __init__(self, rotate_frames=True, threshold=0.14):
+    def __init__(self, rotate_frames=True, threshold=0.14, display_windows=True):
         load_dotenv()
 
         url_start = dotenv_values().get("URL_START")
@@ -32,6 +32,8 @@ class LapTracker:
         self.current_lap_progress = 0.0
         self.hallway_progress = 0.0
 
+        self.display_windows = display_windows
+
     def update_tracker_pair(self, update_method, pair_name):
         if update_method(self.pd_start, self.pd_end):
             print(f"{pair_name} updated successfully.")
@@ -47,8 +49,9 @@ class LapTracker:
                 if self.rotate_frames:
                     frame_start = cv2.rotate(frame_start, cv2.ROTATE_90_CLOCKWISE)
                 self.pd_start.process(frame_start)
-                out_start = self.pd_start.overlay_pose(np.zeros_like(frame_start))
-                cv2.imshow("Camera Start", out_start)
+                if self.display_windows:
+                    out_start = self.pd_start.overlay_pose(np.zeros_like(frame_start))
+                    cv2.imshow("Camera Start", out_start)
 
             if ret_end and frame_end is not None:
                 if self.rotate_frames:
@@ -57,13 +60,19 @@ class LapTracker:
                 out_end = self.pd_end.overlay_pose(np.zeros_like(frame_end))
                 cv2.imshow("Camera End", out_end)
 
-            key = cv2.waitKey(1) & 0xFF
-            if key == 27:
-                break
-            if key == ord('s'):
-                self.update_tracker_pair(self.distance_tracker.set_start_size_pair, "Start size pair")
-            if key == ord('e'):
-                self.update_tracker_pair(self.distance_tracker.set_end_size_pair, "End size pair")
+            if self.display_windows:
+                key = cv2.waitKey(1) & 0xFF
+                if key == 27:
+                    break
+                if key == ord('s'):
+                    self.update_tracker_pair(self.distance_tracker.set_start_size_pair, "Start size pair by key press")
+                if key == ord('e'):
+                    self.update_tracker_pair(self.distance_tracker.set_end_size_pair, "End size pair by key press")
+
+            if self.pd_end.left_hand_raised() and self.pd_start.left_hand_raised():
+                self.update_tracker_pair(self.distance_tracker.set_start_size_pair, "Start size pair by left hand raise")
+            if self.pd_end.right_hand_raised() and self.pd_start.right_hand_raised():
+                self.update_tracker_pair(self.distance_tracker.set_end_size_pair, "End size pair by right hand raise")
 
             self.distance_tracker.update_current_size_pair(self.pd_start, self.pd_end)
 
@@ -93,7 +102,8 @@ class LapTracker:
     def cleanup(self):
         self.start_cam.release()
         self.end_cam.release()
-        cv2.destroyAllWindows()
+        if self.display_windows:
+            cv2.destroyAllWindows()
 
     # thread-safe getters
     def get_lap_count(self) -> int:
@@ -111,6 +121,12 @@ class LapTracker:
     def get_lap_state(self) -> LapState:
         with self._state_lock:
             return self.lap_state
+        
+    def get_start_is_calibrated(self) -> bool:
+        return self.distance_tracker.start_size_pair is not None
+    
+    def get_end_is_calibrated(self) -> bool:
+        return self.distance_tracker.end_size_pair is not None
 
 
 if __name__ == "__main__":

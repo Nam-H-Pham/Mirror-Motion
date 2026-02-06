@@ -109,11 +109,13 @@
       async function poll() {
         try {
           // parallel fetch all endpoints
-          const [h, c, s, p] = await Promise.all([
+          const [h, c, s, p, sc, ec] = await Promise.all([
             fetchJSON("/hallway_progress"),
             fetchJSON("/lap_count"),
             fetchJSON("/lap_state"),
             fetchJSON("/current_lap_progress"),
+            fetchJSON("/start_is_calibrated"),
+            fetchJSON("/end_is_calibrated"),
           ]);
 
           clearError();
@@ -123,6 +125,8 @@
             lap_count: c.lap_count,
             lap_state: s.lap_state,
             current_lap_progress: p.current_lap_progress,
+            start_is_calibrated: sc.start_is_calibrated,
+            end_is_calibrated: ec.end_is_calibrated,
           };
 
           // map hallway_progress [0..1] -> world X [HALL_MIN_X..HALL_MAX_X]
@@ -134,15 +138,14 @@
             `hallway_progress: ${clamped.toFixed(3)}\n` +
             `current_lap_progress: ${Number(lastApi.current_lap_progress).toFixed(3)}\n` +
             `lap_state: ${String(lastApi.lap_state)}\n` +
-            `lap_count: ${String(lastApi.lap_count)}`;
+            `lap_count: ${String(lastApi.lap_count)}\n` +
+            `start_is_calibrated: ${String(lastApi.start_is_calibrated)}\n` +
+            `end_is_calibrated: ${String(lastApi.end_is_calibrated)}`;
 
         } catch (e) {
-          showError(
-            `Could not reach API at ${API_BASE}\n` +
+          hud.textContent = `Could not reach API at ${API_BASE}\n` +
             `Make sure FastAPI is running and CORS/network allow it.\n\n` +
-            `Error: ${e.message || e}`
-          );
-          hud.textContent = "Disconnected…";
+            `Error: ${e.message || e}`;
         } finally {
           setTimeout(poll, POLL_MS);
         }
