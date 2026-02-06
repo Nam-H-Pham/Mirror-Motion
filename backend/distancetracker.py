@@ -70,7 +70,7 @@ class DistanceTracker:
         # Calculate size by the percentage of the frame occupied by the person's height (using landmarks like nose and feet)
         
         top = landmarks[0].y # Nose landmark as the top of the person
-        bottom = max(landmarks[26].y, landmarks[25].y)
+        bottom = min(landmarks[26].y, landmarks[25].y)
 
         person_height = top - bottom
         frame_ratio = person_height / 1.0 

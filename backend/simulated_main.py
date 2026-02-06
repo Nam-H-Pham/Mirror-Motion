@@ -2,8 +2,11 @@ import threading
 import time
 from enum import Enum
 
-import uvicorn
 from fastapi import FastAPI
+import uvicorn
+from fastapi.middleware.cors import CORSMiddleware
+
+
 
 
 # --- Simulated LapTracker replacement ----------------------------------------
@@ -137,6 +140,15 @@ class SimLapTracker:
 # --- FastAPI server ----------------------------------------------------------
 
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=False,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 
 # Single shared tracker instance (lives for the whole process)
 tracker = SimLapTracker(speed=0.22, tick_hz=30.0)
