@@ -2,6 +2,7 @@ import cv2
 from dotenv import load_dotenv, dotenv_values
 from posedetector import PoseDetector
 from distancetracker import DistanceTracker
+from enum import Enum
 
 load_dotenv()
 
@@ -20,6 +21,14 @@ pd_end = PoseDetector(min_detection_confidence=0.5, min_tracking_confidence=0.5)
 
 # Initialize DistanceTracker once before the loop
 distance_tracker = DistanceTracker()
+
+class LapState(Enum):
+    NOT_STARTED = 0
+    STARTED = 1
+    RETURNING = 2
+
+laps = 0
+lap_state = LapState.NOT_STARTED
 
 # Main loop to read frames from both cameras, process them, and display the results
 while True:
@@ -72,7 +81,22 @@ while True:
 
     progress = distance_tracker.estimate_progress()
     if progress is not None:
-        print(f"Progress towards end of hallway/room: {progress*100:.2f}%")
+        threshold = 0.14
+        
+        if lap_state == LapState.NOT_STARTED and progress < threshold:
+            lap_state = LapState.STARTED
+            print("Lap started!")
+
+        elif lap_state == LapState.STARTED and progress > (1 - threshold):
+            lap_state = LapState.RETURNING
+            print("Return back to start...")
+
+        elif lap_state == LapState.RETURNING and progress < threshold:
+            lap_state = LapState.STARTED
+            laps += 1
+            print(f"Lap completed! Total laps: {laps}")
+
+
 
 cap_start.release()
 cap_end.release()
