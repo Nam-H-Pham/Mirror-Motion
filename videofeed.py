@@ -74,7 +74,6 @@ while True:
     if progress is not None:
         print(f"Progress towards end of hallway/room: {progress*100:.2f}%")
 
-
 cap_start.release()
 cap_end.release()
 cv2.destroyAllWindows()

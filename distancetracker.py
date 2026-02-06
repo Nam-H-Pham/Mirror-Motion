@@ -68,19 +68,14 @@ class DistanceTracker:
         landmarks = results.pose_landmarks.landmark
 
         # Calculate size by the percentage of the frame occupied by the person's height (using landmarks like nose and feet)
-        nose = landmarks[0]  # Nose landmark
-        left_foot = landmarks[27]  # Left foot landmark
-        right_foot = landmarks[28]  # Right foot landmark
-
-        # If any of the key landmarks are not visible, we cannot calculate size accurately
-        if nose.visibility < 0.5 or (left_foot.visibility < 0.5 and right_foot.visibility < 0.5):
-            return None
         
-        # Calculate the height of the person in the frame
-        person_height = min(left_foot.y, right_foot.y) - nose.y # in pixels
-        frame_ratio = person_height / 1.0  # Assuming frame height is normalized to 1.0
+        top = landmarks[0].y # Nose landmark as the top of the person
+        bottom = max(landmarks[26].y, landmarks[25].y)
 
-        return frame_ratio  # normalized ratio of person height to frame height
+        person_height = top - bottom
+        frame_ratio = person_height / 1.0 
+
+        return frame_ratio 
 
     
     def estimate_progress(self) -> float | None:
