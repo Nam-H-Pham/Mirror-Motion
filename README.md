@@ -1,6 +1,13 @@
 # Mirror-Motion
 Mirror Motion Repository.
 
+
+# Running the Back End
+```
+cd backend
+python -m uvicorn main:app --reload
+```
+
 # Noted Issues
 The version of mediapipe was downgraded based on https://github.com/google-ai-edge/mediapipe/issues/1928
 
