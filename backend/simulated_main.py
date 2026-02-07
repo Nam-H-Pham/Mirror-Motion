@@ -174,6 +174,16 @@ def get_lap_state() -> dict:
     # from LapState enum values: NOT_STARTED, STARTED, RETURNING
     return {"lap_state": tracker.get_lap_state().name}
 
+@app.get("/start_is_calibrated")
+def get_start_is_calibrated() -> dict:
+    # Simulated tracker is always "calibrated" for both start and end
+    return {"start_is_calibrated": True}
+
+@app.get("/end_is_calibrated")
+def get_end_is_calibrated() -> dict:
+    # Simulated tracker is always "calibrated" for both start and end
+    return {"end_is_calibrated": True}
+
 
 def run_api() -> None:
     # Important: run Uvicorn in a background thread

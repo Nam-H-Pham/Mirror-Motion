@@ -10,6 +10,8 @@ endpoints = {
     "current_lap_progress": "/current_lap_progress",
     "hallway_progress": "/hallway_progress",
     "lap_state": "/lap_state",
+    "start_is_calibrated": "/start_is_calibrated",
+    "end_is_calibrated": "/end_is_calibrated",
 }
 
 
