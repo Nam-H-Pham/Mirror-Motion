@@ -9,7 +9,7 @@ endpoints = {
     "lap_count": "/lap_count",
     "current_lap_progress": "/current_lap_progress",
     "hallway_progress": "/hallway_progress",
-    "lap_state": "/lap_state",
+    "lap_state": "/lap_state", # NOT_STARTED, STARTED, RETURNING
     "start_is_calibrated": "/start_is_calibrated",
     "end_is_calibrated": "/end_is_calibrated",
 }

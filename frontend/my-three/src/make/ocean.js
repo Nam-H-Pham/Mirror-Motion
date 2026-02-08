@@ -6,6 +6,12 @@ export function makeOcean({
   baseY = 0,
   swellDirection = new THREE.Vector2(0.8, 0.2),
   swellDirection2 = new THREE.Vector2(0.3, 0.9),
+  calmRadius = 40,
+  calmFalloff = 140,
+  calmStrength = 0.7,
+  foamRadius = 36,
+  foamWidth = 4,
+  foamStrength = 1,
 } = {}) {
   const geometry = new THREE.PlaneGeometry(size, size, segments, segments);
   geometry.rotateX(-Math.PI / 2);
@@ -42,6 +48,7 @@ export function makeOcean({
     const t = clamp01((x - e0) / (e1 - e0));
     return t * t * (3 - 2 * t);
   };
+  const lerp = (a, b, t) => a + (b - a) * t;
 
   // Normalize directions
   const dir1 = swellDirection.clone().normalize();
@@ -72,6 +79,11 @@ export function makeOcean({
       const y0 = original[ix + 1];
       const z = original[ix + 2];
 
+      // Calm the water near the island (center), ramping back to full waves
+      const r = Math.sqrt(x * x + z * z);
+      const calmT = smoothstep(calmRadius, calmRadius + calmFalloff, r);
+      const ampScale = lerp(1 - calmStrength, 1, calmT);
+
       // Two large swells + chop + ripples for convincing motion at scale
       const d1 = x * dir1.x + z * dir1.y;
       const d2 = x * dir2.x + z * dir2.y;
@@ -81,10 +93,10 @@ export function makeOcean({
       const warp2 = Math.cos((x * 0.04) - (z * 0.06) - t * 0.12) * 18.0;
       const gust = 0.85 + Math.sin((x * 0.1) + (z * 0.1) + t * 0.08) * 0.2;
 
-      const wave1 = Math.sin((d1 + warp) * k1 + t * swell1.speed) * swell1.amp * gust;
-      const wave2 = Math.sin((d2 + warp2) * k2 + t * swell2.speed + 0.8) * swell2.amp;
-      const wave3 = Math.sin((x + z + warp * 0.4) * k3 - t * chop.speed) * chop.amp;
-      const wave4 = Math.sin((x - z + warp2 * 0.3) * k4 + t * ripples.speed) * ripples.amp;
+      const wave1 = Math.sin((d1 + warp) * k1 + t * swell1.speed) * swell1.amp * gust * ampScale;
+      const wave2 = Math.sin((d2 + warp2) * k2 + t * swell2.speed + 0.8) * swell2.amp * ampScale;
+      const wave3 = Math.sin((x + z + warp * 0.4) * k3 - t * chop.speed) * chop.amp * ampScale;
+      const wave4 = Math.sin((x - z + warp2 * 0.3) * k4 + t * ripples.speed) * ripples.amp * ampScale;
 
       const y = y0 + wave1 + wave2 + wave3 + wave4;
       pos.array[ix + 1] = y;
@@ -105,8 +117,12 @@ export function makeOcean({
       c.copy(deepColor).lerp(midColor, midMix).lerp(shallowColor, shallowMix);
 
       // optional "foam" tint on the very top crests
-      const foam = smoothstep(0.90, 0.985, hVar);
+      const foam = smoothstep(0.5, 0.985, hVar);
       c.lerp(foamColor, foam * 0.7);
+
+      // shoreline/intersection foam ring around the island center
+      const shore = 1 - smoothstep(foamRadius, foamRadius + foamWidth, r);
+      c.lerp(foamColor, shore * foamStrength);
 
       colors[ix + 0] = c.r;
       colors[ix + 1] = c.g;
