@@ -12,7 +12,7 @@ const camera = new THREE.PerspectiveCamera(
   0.1,
   10000
 );
-camera.position.set(0, 1, 3);
+camera.position.set(0, 30, 50);
 
 // Renderer
 const renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -25,11 +25,19 @@ document.body.appendChild(renderer.domElement);
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
 
-// A mesh (cube)
-const geometry = new THREE.BoxGeometry(1, 1, 1);
-const material = new THREE.MeshStandardMaterial({ roughness: 0.4, metalness: 0.1 });
-const cube = new THREE.Mesh(geometry, material);
-scene.add(cube);
+// A mesh (flat circle)
+const geometry = new THREE.CircleGeometry(32, 64); // radius 32, 64 segments for smoothness
+geometry.rotateX(-Math.PI / 2); // lay flat (Y up)
+
+const material = new THREE.MeshStandardMaterial({
+  roughness: 0.4,
+  metalness: 0.1,
+  side: THREE.DoubleSide // so its visible from below too
+});
+
+const circle = new THREE.Mesh(geometry, material);
+scene.add(circle);
+
 
 // Light
 const dirLight = new THREE.DirectionalLight(0xffffff, 1.2);
@@ -41,7 +49,7 @@ scene.add(new THREE.AmbientLight(0xffffff, 0.3));
 // Sky dome (rendered on the inside of a large sphere)
 scene.add(makeSkyDome());
 
-const ocean = makeOcean({ size: 1000, segments: 240, baseY: -2 });
+const ocean = makeOcean({ size: 1000, segments: 250, baseY: -2 });
 scene.add(ocean.mesh);
 
 // Good lighting helps the facets pop
