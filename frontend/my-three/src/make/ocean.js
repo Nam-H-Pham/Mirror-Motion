@@ -77,9 +77,9 @@ export function makeOcean({
       const d2 = x * dir2.x + z * dir2.y;
 
       // Large-scale irregularity to break distant repetition
-      const warp = Math.sin((x * 0.05) + (z * 0.03) + t * 0.15) * 25.0;
+      const warp = Math.sin((x * 0.05) + (z * 0.1) + t * 0.15) * 25.0;
       const warp2 = Math.cos((x * 0.04) - (z * 0.06) - t * 0.12) * 18.0;
-      const gust = 0.85 + Math.sin((x * 0.002) + (z * 0.0015) + t * 0.08) * 0.2;
+      const gust = 0.85 + Math.sin((x * 0.1) + (z * 0.1) + t * 0.08) * 0.2;
 
       const wave1 = Math.sin((d1 + warp) * k1 + t * swell1.speed) * swell1.amp * gust;
       const wave2 = Math.sin((d2 + warp2) * k2 + t * swell2.speed + 0.8) * swell2.amp;
