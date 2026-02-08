@@ -120,9 +120,6 @@ export function makeOcean({
       const foam = smoothstep(0.5, 0.985, hVar);
       c.lerp(foamColor, foam * 0.7);
 
-      // shoreline/intersection foam ring around the island center
-      const shore = 1 - smoothstep(foamRadius, foamRadius + foamWidth, r);
-      c.lerp(foamColor, shore * foamStrength);
 
       colors[ix + 0] = c.r;
       colors[ix + 1] = c.g;
