@@ -1,15 +1,16 @@
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
+import { makeSkyDome } from "./make/sky.js";
+import { makeOcean } from "./make/ocean.js";
 
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x0b0f1a);
 
 // Camera
 const camera = new THREE.PerspectiveCamera(
   60,
   window.innerWidth / window.innerHeight,
   0.1,
-  1000
+  10000
 );
 camera.position.set(0, 1, 3);
 
@@ -37,6 +38,19 @@ scene.add(dirLight);
 
 scene.add(new THREE.AmbientLight(0xffffff, 0.3));
 
+// Sky dome (rendered on the inside of a large sphere)
+scene.add(makeSkyDome());
+
+const ocean = makeOcean({ size: 1000, segments: 240, baseY: -2 });
+scene.add(ocean.mesh);
+
+// Good lighting helps the facets pop
+const sun = new THREE.DirectionalLight(0xffffff, 1.2);
+sun.position.set(50, 100, 30);
+scene.add(sun);
+scene.add(new THREE.AmbientLight(0xffffff, 0.35));
+
+
 // Resize
 window.addEventListener("resize", () => {
   camera.aspect = window.innerWidth / window.innerHeight;
@@ -44,11 +58,13 @@ window.addEventListener("resize", () => {
   renderer.setSize(window.innerWidth, window.innerHeight);
 });
 
+
+
 // Animation loop
-function animate() {
+function animate(timeMs) {
   requestAnimationFrame(animate);
-  cube.rotation.y += 0.01;
-  cube.rotation.x += 0.005;
+
+  ocean.update(timeMs * 0.0001);
 
   controls.update();          // update first when damping is on
   renderer.render(scene, camera);
