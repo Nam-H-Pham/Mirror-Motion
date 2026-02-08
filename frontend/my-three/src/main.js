@@ -2,8 +2,15 @@ import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { makeSkyDome } from "./make/sky.js";
 import { makeOcean } from "./make/ocean.js";
+import { makeFog } from "./make/fog.js";
 
 const scene = new THREE.Scene();
+
+const { fog, color: fogColor } = makeFog({
+  color: 0xcfe9ff,
+  density: 0.0028,
+});
+scene.fog = fog;
 
 // Camera
 const camera = new THREE.PerspectiveCamera(
@@ -18,6 +25,7 @@ camera.position.set(0, 30, 50);
 const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setClearColor(fogColor, 1);
 document.body.style.margin = "0";
 document.body.appendChild(renderer.domElement);
 

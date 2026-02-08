@@ -28,9 +28,8 @@ export function makeOcean({
     vertexColors: true,     // <-- key: use per-vertex shading
     roughness: 0.18,
     metalness: 0.0,
-    flatShading: false,
     transparent: true,      // optional: more watery feel
-    opacity: 0.92,
+    opacity: 0.90,
   });
 
   const mesh = new THREE.Mesh(geometry, material);
@@ -78,8 +77,8 @@ export function makeOcean({
       const d2 = x * dir2.x + z * dir2.y;
 
       // Large-scale irregularity to break distant repetition
-      const warp = Math.sin((x * 0.005) + (z * 0.003) + t * 0.15) * 25.0;
-      const warp2 = Math.cos((x * 0.004) - (z * 0.006) - t * 0.12) * 18.0;
+      const warp = Math.sin((x * 0.05) + (z * 0.03) + t * 0.15) * 25.0;
+      const warp2 = Math.cos((x * 0.04) - (z * 0.06) - t * 0.12) * 18.0;
       const gust = 0.85 + Math.sin((x * 0.002) + (z * 0.0015) + t * 0.08) * 0.2;
 
       const wave1 = Math.sin((d1 + warp) * k1 + t * swell1.speed) * swell1.amp * gust;
